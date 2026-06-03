@@ -144,6 +144,25 @@
   .d-verify:hover{filter:brightness(.95)}
   @media(max-width:560px){.d-row{grid-template-columns:1fr;gap:2px}}
 
+  /* coinbase wallet supporting section */
+  .cbw{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px 22px 18px;margin:0 0 40px}
+  .cbw-title{margin:0 0 8px;font-size:18px}
+  .cbw-intro{margin:0 0 16px;font-size:14px;color:#414b63;max-width:840px}
+  .cbw-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .cbw-list li{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 12px}
+  .cbw-num{flex:none;width:26px;height:26px;border-radius:50%;background:#e7ecf7;color:var(--accent);
+    display:grid;place-items:center;font-size:12.5px;font-weight:700}
+  .cbw-hash{flex:1 1 360px;font-size:12.5px;word-break:break-all;color:var(--ink);text-decoration:none}
+  .cbw-hash:hover{color:var(--accent)}
+  .cbw-verify{flex:none;text-decoration:none;font-size:12.5px;font-weight:700;color:var(--accent);
+    border:1px solid var(--line);border-radius:8px;padding:6px 12px;background:var(--paper);white-space:nowrap}
+  .cbw-verify:hover{border-color:var(--accent)}
+  .cbw-copy{flex:none;border:1px solid var(--line);background:var(--paper);border-radius:8px;cursor:pointer;
+    font-size:13px;padding:5px 9px;color:var(--muted)}
+  .cbw-copy:hover{border-color:var(--accent);color:var(--accent)}
+  .cbw-foot{margin:14px 0 0;font-size:12.5px;color:var(--muted)}
+
   footer{padding:26px 0 60px;color:var(--muted);font-size:12.5px;text-align:center}
 
   /* totals row */
@@ -152,7 +171,8 @@
   /* PRINT */
   @media print{
     body{background:#fff;font-size:11px}
-    .topbar,.controls,.btn,.nav,.more,.overlay,.drawer{display:none !important}
+    .topbar,.controls,.btn,.nav,.more,.overlay,.drawer,.cbw-copy{display:none !important}
+    .cbw{break-inside:avoid;border:1px solid #ccc}
     .note{break-inside:avoid}
     .tablewrap{border:none;border-radius:0}
     thead th{position:static;background:#eee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -240,6 +260,22 @@
   </div>
 </div>
 
+<section class="wrap" id="cbwallet">
+  <div class="cbw">
+    <h2 class="cbw-title">Supporting documentation — Coinbase Wallet (self-custody)</h2>
+    <p class="cbw-intro">
+      The <b>~8 ETH</b> that was later moved into the Ledger hardware wallet originated in the account holder's
+      <b>Coinbase Wallet</b> — a separate, self-custody wallet (app at <span class="mono">wallet.coinbase.com</span>),
+      distinct from the Coinbase exchange above. That app does not offer a CSV export, but the wallet's activity is
+      recorded on the public Ethereum blockchain. The transactions below document it; click any to verify the amount,
+      date, and parties independently on Etherscan.
+    </p>
+    <ul class="cbw-list" id="cbwList"></ul>
+    <p class="cbw-foot">These hashes are also saved in the repository at
+      <span class="mono">data/coinbase-wallet-tx-hashes.txt</span> for reference.</p>
+  </div>
+</section>
+
 <!-- Details drawer -->
 <div id="overlay" class="overlay"></div>
 <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Transaction details">
@@ -263,6 +299,39 @@
 <script src="ledger-data.js"></script>
 <script>
 const DATA = window.LEDGER_DATA || [];
+
+/* Coinbase Wallet (self-custody) supporting transaction hashes — provided by the
+   account holder; verifiable on Etherscan. Documents the source of the ~8 ETH. */
+const CBWALLET_TX = [
+  "0x4e883c0ac1f7303a02d9556b631dafbcc0c0fec65e4321bba0a31b84a7508759",
+  "0xcf3293e46f33e98d5e1cf518755ca494de96281f58c7ecf03f028c13b2a12120",
+  "0x040b220bbea69e8feae6393dfbcc931daccbd41b750a6d4e294cd4eb41e3cceb",
+  "0x17590e3a60ffb822dbf3ef1d447a8918555d8837f778f26de41862e30ecaab0c",
+  "0xfaacb540fa0d669b1a03158d3b5f37154407c66dd63f557762915bb1bc42a0f2",
+  "0x3e94a5c7086d48f22edd44d765fe17331ab39306b1945e6f6470ee9c0b8e7b35",
+  "0x57859cdc47b7001f55a2f85f8443c80a4d138abbe3df26b4150db93ab4c92a15",
+  "0xf8fbdbf68d31fa1617d2a8617c07088b9e2271b22da249384a1dd9851f26c986",
+  "0xb7f7aacce893e04d0d983291d4cff92fe7e0eb590307cf410a2710c731a28e75",
+];
+(function renderCbw(){
+  const ul = document.getElementById("cbwList");
+  if(!ul) return;
+  ul.innerHTML = CBWALLET_TX.map((h,i)=>{
+    const url = "https://etherscan.io/tx/"+h;
+    return `<li>
+      <span class="cbw-num">${i+1}</span>
+      <a class="cbw-hash mono" href="${url}" target="_blank" rel="noopener">${h}</a>
+      <button class="cbw-copy" data-copy="${h}" title="Copy hash">⧉</button>
+      <a class="cbw-verify" href="${url}" target="_blank" rel="noopener">Verify on Etherscan ↗</a>
+    </li>`;
+  }).join("");
+  ul.addEventListener("click", e=>{
+    const b = e.target.closest(".cbw-copy");
+    if(!b) return;
+    navigator.clipboard?.writeText(b.dataset.copy);
+    const old=b.textContent; b.textContent="✓"; setTimeout(()=>b.textContent=old,1200);
+  });
+})();
 
 const fmtUSD = n => n==null ? "—" : (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtQty = n => n==null ? "—" : Math.abs(n).toLocaleString("en-US",{maximumFractionDigits:8});
