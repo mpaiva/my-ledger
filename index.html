@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Crypto Journey — How My Coins Traveled</title>
+<meta name="description" content="A plain-language, interactive map of how my cryptocurrency moved from Coinbase to my Ledger hardware wallet and back again — with a link to every transaction on the blockchain." />
+<style>
+  :root{
+    --bg:#0b1020;
+    --bg-soft:#121931;
+    --card:#161f3d;
+    --card-2:#1c274d;
+    --line:#27345f;
+    --text:#eaf0ff;
+    --muted:#9fb0d8;
+    --accent:#6ea8ff;
+    --btc:#f7931a;
+    --eth:#8a93ff;
+    --xrp:#23b9d6;
+    --green:#36d399;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,#1a2350 0%,transparent 60%),
+               radial-gradient(900px 600px at -10% 10%,#15224a 0%,transparent 55%),
+               var(--bg);
+    color:var(--text);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent)}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+  /* ---------- Header ---------- */
+  header.hero{
+    padding:64px 0 30px;
+    text-align:center;
+  }
+  .eyebrow{
+    display:inline-block;
+    font-size:13px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--muted);
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    padding:6px 14px;border-radius:999px;margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(30px,5vw,52px);
+    line-height:1.08;margin:.1em 0 .25em;
+    background:linear-gradient(90deg,#eaf0ff,#9fb8ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .sub{font-size:clamp(16px,2.3vw,20px);color:var(--muted);max-width:680px;margin:0 auto}
+
+  /* ---------- Stat row ---------- */
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:38px 0 10px;
+  }
+  .stat{
+    background:linear-gradient(180deg,var(--card-2),var(--card));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 16px;text-align:center;box-shadow:var(--shadow);
+  }
+  .stat .num{font-size:clamp(20px,3.4vw,30px);font-weight:700}
+  .stat .lbl{font-size:12.5px;color:var(--muted);margin-top:4px}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+  /* ---------- Journey map ---------- */
+  section{padding:34px 0}
+  .section-title{font-size:24px;margin:0 0 6px}
+  .section-note{color:var(--muted);margin:0 0 22px;max-width:720px}
+
+  .journey{
+    background:linear-gradient(180deg,var(--bg-soft),var(--card));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px 22px;box-shadow:var(--shadow);
+  }
+  .stations{
+    display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;align-items:stretch;
+  }
+  .station{
+    position:relative;text-align:center;padding:18px 12px;border-radius:14px;
+    background:var(--card-2);border:1px solid var(--line);
+  }
+  .station .ico{font-size:30px;line-height:1}
+  .station .name{font-weight:700;margin-top:8px}
+  .station .role{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .flowbar{position:relative;height:46px;margin:8px 0 2px}
+  .flowbar svg{width:100%;height:100%;display:block;overflow:visible}
+  .legmark{font-size:11.5px;color:var(--muted);text-align:center;margin-top:-4px}
+  @media(max-width:760px){
+    .stations{grid-template-columns:1fr;gap:0}
+    .station{margin:0 auto;max-width:340px}
+    .flowbar{height:34px}
+    .flowbar svg{transform:rotate(90deg)}
+  }
+
+  /* ---------- Filter tabs ---------- */
+  .tabs{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 22px}
+  .tab{
+    cursor:pointer;border:1px solid var(--line);background:var(--bg-soft);
+    color:var(--text);padding:9px 16px;border-radius:999px;font-size:14.5px;
+    display:flex;align-items:center;gap:8px;transition:.15s;user-select:none;
+  }
+  .tab:hover{border-color:var(--accent)}
+  .tab.active{background:var(--accent);color:#06122e;border-color:var(--accent);font-weight:700}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.btc{background:var(--btc)} .dot.eth{background:var(--eth)} .dot.xrp{background:var(--xrp)}
+
+  /* ---------- Timeline ---------- */
+  .timeline{position:relative;margin-left:6px;padding-left:26px;border-left:2px dashed var(--line)}
+  .tx{
+    position:relative;margin:0 0 18px;background:var(--card);
+    border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;
+    box-shadow:var(--shadow);transition:.2s;
+  }
+  .tx:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .tx::before{
+    content:"";position:absolute;left:-35px;top:24px;width:14px;height:14px;border-radius:50%;
+    background:var(--accent);border:3px solid var(--bg);
+  }
+  .tx.btc::before{background:var(--btc)} .tx.eth::before{background:var(--eth)} .tx.xrp::before{background:var(--xrp)}
+  .tx-head{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
+  .tx-coin{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px}
+  .coin-badge{
+    width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    font-size:14px;font-weight:800;color:#0b1020;flex:none;
+  }
+  .coin-badge.btc{background:var(--btc)} .coin-badge.eth{background:var(--eth)} .coin-badge.xrp{background:var(--xrp)}
+  .tx-date{font-size:13px;color:var(--muted);white-space:nowrap}
+  .tx-desc{margin:12px 0 12px;font-size:15.5px}
+  .route{
+    display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;
+    background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;
+    padding:7px 12px;font-size:13.5px;margin-bottom:12px;
+  }
+  .route .pill{color:var(--text);font-weight:600}
+  .route .arrow{color:var(--muted)}
+  .vals{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:14px}
+  .val .v{font-weight:700;font-size:16px}
+  .val .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .val .v.up{color:var(--green)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{
+    text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+    padding:9px 15px;border-radius:10px;font-size:14px;font-weight:600;
+    border:1px solid var(--line);background:var(--card-2);color:var(--text);transition:.15s;
+  }
+  .btn.primary{background:var(--accent);color:#06122e;border-color:var(--accent)}
+  .btn:hover{transform:translateY(-1px)}
+  .btn small{opacity:.7;font-weight:500}
+
+  .hidden{display:none !important}
+
+  /* ---------- Plain-language explainer ---------- */
+  .explain{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .explain .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .explain h3{margin:.1em 0 .4em;font-size:17px}
+  .explain p{margin:0;color:var(--muted);font-size:14.5px}
+  @media(max-width:680px){.explain{grid-template-columns:1fr}}
+
+  footer{padding:40px 0 60px;color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--line);margin-top:20px}
+  .disclaimer{max-width:680px;margin:0 auto 14px;background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--muted)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">A simple map of my crypto</span>
+    <h1>Where My Crypto Has Traveled</h1>
+    <p class="sub">Think of this like a package-tracking page — but for money. It shows every time my coins moved between my <strong>Coinbase account</strong> (an online exchange) and my <strong>Ledger wallet</strong> (a small physical device that stores crypto safely, like a vault in my pocket). Every move below links to a public record you can verify yourself.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="num">11</div><div class="lbl">Tracked transfers</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">Coins (BTC · ETH · XRP)</div></div>
+      <div class="stat"><div class="num">2022–2026</div><div class="lbl">Years on this journey</div></div>
+      <div class="stat"><div class="num">100%</div><div class="lbl">Verifiable on-chain</div></div>
+    </div>
+  </div>
+</header>
+
+<section class="wrap">
+  <h2 class="section-title">The Big Picture</h2>
+  <p class="section-note">My coins followed a simple round trip. I <strong>bought</strong> them on Coinbase, <strong>moved</strong> them to my own Ledger wallet for safekeeping, and years later <strong>sent some back</strong> to Coinbase to cash out to my bank.</p>
+
+  <div class="journey">
+    <div class="stations">
+      <div class="station">
+        <div class="ico">🏦</div>
+        <div class="name">Coinbase</div>
+        <div class="role">Where I bought the coins</div>
+      </div>
+      <div class="station">
+        <div class="ico">🔐</div>
+        <div class="name">Ledger Wallet</div>
+        <div class="role">My personal vault</div>
+      </div>
+      <div class="station">
+        <div class="ico">🏦</div>
+        <div class="name">Coinbase</div>
+        <div class="role">Where I cashed out</div>
+      </div>
+      <div class="station">
+        <div class="ico">💵</div>
+        <div class="name">My Bank</div>
+        <div class="role">Turned into dollars</div>
+      </div>
+    </div>
+    <div class="flowbar" aria-hidden="true">
+      <svg viewBox="0 0 1000 46" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="g1" x1="0" x2="1">
+            <stop offset="0" stop-color="#6ea8ff" stop-opacity=".15"/>
+            <stop offset=".5" stop-color="#6ea8ff" stop-opacity=".9"/>
+            <stop offset="1" stop-color="#6ea8ff" stop-opacity=".15"/>
+          </linearGradient>
+        </defs>
+        <line x1="0" y1="23" x2="1000" y2="23" stroke="url(#g1)" stroke-width="3" stroke-dasharray="10 8">
+          <animate attributeName="stroke-dashoffset" from="36" to="0" dur="1.1s" repeatCount="indefinite"/>
+        </line>
+        <polygon points="250,15 268,23 250,31" fill="#6ea8ff"/>
+        <polygon points="500,15 518,23 500,31" fill="#6ea8ff"/>
+        <polygon points="750,15 768,23 750,31" fill="#6ea8ff"/>
+      </svg>
+    </div>
+    <div class="legmark">money flows left → right over time</div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title">Every Move, Step by Step</h2>
+  <p class="section-note">Tap a coin to filter. Each card explains the move in plain English, what it was worth then versus now, and a button to see the official blockchain record.</p>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-filter="all">All coins</div>
+    <div class="tab" data-filter="btc"><span class="dot btc"></span>Bitcoin</div>
+    <div class="tab" data-filter="eth"><span class="dot eth"></span>Ethereum</div>
+    <div class="tab" data-filter="xrp"><span class="dot xrp"></span>XRP</div>
+  </div>
+
+  <div class="timeline" id="timeline"></div>
+</section>
+
+<section class="wrap">
+  <h2 class="section-title">Crypto Terms in Plain English</h2>
+  <p class="section-note">A quick cheat-sheet, in case any word above was unfamiliar.</p>
+  <div class="explain">
+    <div class="box"><h3>🏦 Coinbase</h3><p>A popular website/app where everyday people buy and sell crypto using regular money. Think of it like an online stock broker, but for coins.</p></div>
+    <div class="box"><h3>🔐 Ledger wallet</h3><p>A small physical device (like a USB stick) that holds your crypto offline so hackers can't reach it. "Not your keys, not your coins" — keeping it here means I truly own it.</p></div>
+    <div class="box"><h3>🔗 The blockchain</h3><p>A public, tamper-proof record book that everyone can see. Every transfer below is written there forever — which is why anyone can click and verify it.</p></div>
+    <div class="box"><h3>🧾 Transaction hash</h3><p>The unique "receipt number" for a transfer on the blockchain. Paste it into a blockchain explorer (or click the button) to look up that exact move.</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="disclaimer">
+      <strong>Note:</strong> Amounts and dollar values come straight from my Coinbase and Ledger export files. "Value then" is the price on the day of the transfer; "value today" reflects a later snapshot. Tiny spam/dust tokens were left out to keep things clear. Wallet addresses shown are public and safe to share — they cannot be used to move any funds.
+    </div>
+    Built as a personal crypto journey tracker · Verify any move on the public blockchain.
+  </div>
+</footer>
+
+<script>
+/* Each "move" of crypto. Amounts, USD values, and hashes come from the Coinbase + Ledger exports. */
+const TX = [
+  // ---------------- BITCOIN ----------------
+  {
+    coin:"btc", sym:"₿", name:"Bitcoin", date:"2022-11-12",
+    dir:"in", amount:"0.00297535 BTC",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"A small starter transfer — moved a little Bitcoin from Coinbase into my own Ledger wallet to begin self-custody.",
+    then:"$50.04", now:"$198.27", up:true,
+    fromAddr:"Coinbase", toAddr:"bc1q4f4atnyfx60u3u5lz3hp8w5um0ca3cjd7q70tt",
+    hash:"662c0fb5bb272479acd46a14d0b0ad793f0d0db284841938f26153885727dd2a",
+    explorer:"https://mempool.space/tx/"
+  },
+  {
+    coin:"btc", sym:"₿", name:"Bitcoin", date:"2022-11-12",
+    dir:"in", amount:"1.00510250 BTC",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"The big one — moved a full Bitcoin from Coinbase into my Ledger wallet for long-term safekeeping.",
+    then:"$16,906.21", now:"$66,980.03", up:true,
+    fromAddr:"Coinbase", toAddr:"bc1qr9tpaax3geewl9dslj68wfpfpm8lg8kqdcu5tr",
+    hash:"2d4d4c90334ceed0eb9472b8328349ba6a26a2be512d83d160ec914f183c3056",
+    explorer:"https://mempool.space/tx/"
+  },
+  {
+    coin:"btc", sym:"₿", name:"Bitcoin", date:"2024-02-18",
+    dir:"in", amount:"0.19341146 BTC",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"Topped up the Ledger with more Bitcoin bought on Coinbase about a year later.",
+    then:"$10,009.13", now:"$12,888.93", up:true,
+    fromAddr:"Coinbase", toAddr:"bc1qmcmgrayvyd3hv3ryujhf9h6sw8d6uu0uzh48ka",
+    hash:"77c8d255dde160ed4ec9ee76a176ad00b79fb3fd2f3abbc9bf85f0b781eca526",
+    explorer:"https://mempool.space/tx/"
+  },
+  {
+    coin:"btc", sym:"₿", name:"Bitcoin", date:"2025-05-25",
+    dir:"out", amount:"0.00018879 BTC",
+    from:"My Ledger wallet", to:"Another address",
+    desc:"A tiny outgoing test transfer from the Ledger wallet.",
+    then:"$20.30", now:"$12.58", up:false,
+    fromAddr:"My Ledger wallet", toAddr:"—",
+    hash:"2981e125a762471d4ee1d437416576edf9877fce57fe13c7358ac1f6bc7ee920",
+    explorer:"https://mempool.space/tx/"
+  },
+  {
+    coin:"btc", sym:"₿", name:"Bitcoin", date:"2026-05-07",
+    dir:"out", amount:"1.19260153 BTC",
+    from:"My Ledger wallet", to:"Coinbase",
+    desc:"The cash-out — sent almost all my Bitcoin back from the Ledger to Coinbase. A week later it was converted to dollars and withdrawn to my bank.",
+    then:"$96,180.45", now:"$79,474.96", up:false,
+    fromAddr:"My Ledger wallet", toAddr:"3A8brrh55zfsG9EusBPERbYEVesKuNLXPP",
+    hash:"47ef90b51f86b5300c3e4dac12d69bb6dbf9265a26a2900474a2e0ee739f2eda",
+    explorer:"https://mempool.space/tx/"
+  },
+
+  // ---------------- ETHEREUM ----------------
+  {
+    coin:"eth", sym:"Ξ", name:"Ethereum", date:"2022-11-12",
+    dir:"in", amount:"0.03977880 ETH",
+    from:"Another account", to:"My Ledger wallet",
+    desc:"A small Ethereum transfer into my Ledger wallet.",
+    then:"$50.21", now:"$73.71", up:true,
+    fromAddr:"Another account", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
+    hash:"0xc0f510ad28dcf84660364c2ad6d2ec0ed246012b946ef842bb65a8ce818f13f8",
+    explorer:"https://etherscan.io/tx/"
+  },
+  {
+    coin:"eth", sym:"Ξ", name:"Ethereum", date:"2022-11-12",
+    dir:"in", amount:"7.95068999 ETH",
+    from:"Another account", to:"My Ledger wallet",
+    desc:"The largest Ethereum deposit into my Ledger wallet — nearly 8 ETH moved into safe storage.",
+    then:"$10,037.10", now:"$14,733.02", up:true,
+    fromAddr:"Another account", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
+    hash:"0x97c583119f62bc837177665997ba09c167766b1ba868efb25ed16f26e009a322",
+    explorer:"https://etherscan.io/tx/"
+  },
+  {
+    coin:"eth", sym:"Ξ", name:"Ethereum", date:"2022-11-12",
+    dir:"in", amount:"2.00000087 ETH",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"Moved 2 ETH from Coinbase into my Ledger wallet the same day.",
+    then:"$2,524.83", now:"$3,706.10", up:true,
+    fromAddr:"Coinbase", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
+    hash:"0x508bd427a25bdad09f8b3400b94e7f34d766212827ca1f2f1e58860cba6d6615",
+    explorer:"https://etherscan.io/tx/"
+  },
+  {
+    coin:"eth", sym:"Ξ", name:"Ethereum", date:"2024-02-18",
+    dir:"in", amount:"3.57949522 ETH",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"Added another 3.5+ ETH from Coinbase to the Ledger wallet in 2024.",
+    then:"$10,041.20", now:"$6,632.98", up:false,
+    fromAddr:"Coinbase", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
+    hash:"0x2769f27f5c4009971430d0b28cc1c7077304a7c7baa581d64e5caddcb21cc223",
+    explorer:"https://etherscan.io/tx/"
+  },
+
+  // ---------------- XRP ----------------
+  {
+    coin:"xrp", sym:"✕", name:"XRP", date:"2025-05-25",
+    dir:"in", amount:"8.642109 XRP",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"A small XRP transfer from Coinbase to set up my Ledger XRP wallet.",
+    then:"$19.90", now:"$10.54", up:false,
+    fromAddr:"Coinbase", toAddr:"rB8qUoQu7zHQj3C9JrCJJX2F63VnyUtM7v",
+    hash:"6080F01C120830C4BE73DC2B514BB7BF227D314961639D91351A792298D81853",
+    explorer:"https://xrpscan.com/tx/"
+  },
+  {
+    coin:"xrp", sym:"✕", name:"XRP", date:"2025-05-25",
+    dir:"in", amount:"4319.467842 XRP",
+    from:"Coinbase", to:"My Ledger wallet",
+    desc:"Moved my main XRP holding — over 4,300 coins — from Coinbase into the Ledger wallet for safekeeping.",
+    then:"$9,950.45", now:"$5,269.75", up:false,
+    fromAddr:"Coinbase", toAddr:"rB8qUoQu7zHQj3C9JrCJJX2F63VnyUtM7v",
+    hash:"5FD1E581A1ECE7632C63B89EC522A2B07245D43E56488ED85351C930E5601815",
+    explorer:"https://xrpscan.com/tx/"
+  }
+];
+
+const addrExplorer = {
+  btc:"https://mempool.space/address/",
+  eth:"https://etherscan.io/address/",
+  xrp:"https://xrpscan.com/account/"
+};
+
+function shortAddr(a){
+  if(!a || a==="—" || a==="Coinbase" || a==="My Ledger wallet" || a==="Another account") return a;
+  return a.slice(0,8)+"…"+a.slice(-6);
+}
+function addrLink(a, coin){
+  const s = shortAddr(a);
+  if(a && a.length>15 && a!=="My Ledger wallet" && a!=="Another account"){
+    return `<a class="mono" href="${addrExplorer[coin]}${a}" target="_blank" rel="noopener">${s}</a>`;
+  }
+  return `<span>${s}</span>`;
+}
+
+function render(filter){
+  const sorted = [...TX].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const tl = document.getElementById("timeline");
+  tl.innerHTML = sorted.map(t=>{
+    const show = (filter==="all"||filter===t.coin);
+    const dirLabel = t.dir==="in" ? "Received into wallet" : "Sent out of wallet";
+    return `
+    <article class="tx ${t.coin} ${show?"":"hidden"}" data-coin="${t.coin}">
+      <div class="tx-head">
+        <div class="tx-coin"><span class="coin-badge ${t.coin}">${t.sym}</span>${t.name} · ${t.amount}</div>
+        <div class="tx-date">📅 ${new Date(t.date+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>
+      </div>
+      <p class="tx-desc">${t.desc}</p>
+      <div class="route">
+        <span class="pill">${t.from}</span>
+        <span class="arrow">➜</span>
+        <span class="pill">${t.to}</span>
+      </div>
+      <div class="vals">
+        <div class="val"><div class="k">Value then</div><div class="v">${t.then}</div></div>
+        <div class="val"><div class="k">Value today</div><div class="v ${t.up?'up':''}">${t.now}</div></div>
+        <div class="val"><div class="k">Direction</div><div class="v" style="font-size:14px">${dirLabel}</div></div>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="${t.explorer}${t.hash}" target="_blank" rel="noopener">🔗 View on blockchain <small>↗</small></a>
+        ${ (t.toAddr && t.toAddr.length>15) ? `<a class="btn" href="${addrExplorer[t.coin]}${t.toAddr}" target="_blank" rel="noopener">📍 See receiving wallet</a>` : "" }
+      </div>
+    </article>`;
+  }).join("");
+}
+
+document.getElementById("tabs").addEventListener("click", e=>{
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  tab.classList.add("active");
+  render(tab.dataset.filter);
+});
+
+render("all");
+</script>
+</body>
+</html>
