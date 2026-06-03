@@ -82,13 +82,15 @@ with open(COINBASE, newline="") as f:
         qtyf = num(qty)
         usd  = money(total) if money(total) is not None else money(subtotal)
         feef = money(fees)
-        # direction: negative qty = outflow from Coinbase
-        is_out = (qtyf is not None and qtyf < 0)
+        sender = (sender or "").strip()
+        recip = (recip or "").strip()
+        recip_link = addr_explorer(asset, recip)
+        sender_link = addr_explorer(asset, sender)
         link = None
-        if ttype in ("Send",):
-            link = addr_explorer(asset, recip)
-        elif ttype in ("Receive",):
-            link = addr_explorer(asset, recip) or addr_explorer(asset, sender)
+        if ttype == "Send":
+            link = recip_link
+        elif ttype == "Receive":
+            link = recip_link or sender_link
         rows.append({
             "date": ts.replace(" UTC", "").strip(),
             "venue": "Coinbase",
@@ -100,6 +102,14 @@ with open(COINBASE, newline="") as f:
             "note": notes.strip(),
             "link": link,
             "onchain": link is not None,
+            # --- extra detail for the drawer ---
+            "id": (txid or "").strip(),
+            "price": money(price),          # unit price at transaction
+            "subtotal": money(subtotal),    # value before fees
+            "sender": sender,
+            "senderLink": sender_link,
+            "recipient": recip,
+            "recipientLink": recip_link,
         })
 
 # ---------------- Ledger ----------------
@@ -120,6 +130,7 @@ with open(LEDGER, newline="") as f:
         fee = num(r.get("Operation Fees"))
         ts = (r.get("Operation Date") or "").replace("T", " ").replace(".000Z", "").strip()
         qty = amt if op == "IN" else (-(amt) if amt is not None else None)
+        xpub = (r.get("Account xpub") or "").strip()
         rows.append({
             "date": ts,
             "venue": "Ledger wallet",
@@ -132,7 +143,13 @@ with open(LEDGER, newline="") as f:
             "note": (r.get("Account Name") or "").strip(),
             "link": tx_explorer(asset, h),
             "onchain": True,
+            # --- extra detail for the drawer ---
+            "id": h,
             "hash": h,
+            "status": (r.get("Status") or "").strip(),
+            "account": (r.get("Account Name") or "").strip(),
+            "xpub": xpub,
+            "xpubLink": addr_explorer(asset, xpub),
         })
 
 # sort newest first

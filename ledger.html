@@ -105,6 +105,45 @@
   .verify .na{font-size:12px;color:var(--muted)}
   .verify .na b{display:block;font-weight:600;color:#7a839a}
 
+  /* clickable rows + details hint */
+  tbody tr[data-i]{cursor:pointer}
+  tbody tr[data-i]:focus{outline:2px solid var(--accent);outline-offset:-2px}
+  .verify{white-space:nowrap}
+  .more{display:inline-block;margin-left:10px;color:#9aa6bf;font-size:12px;font-weight:600;opacity:0;transition:opacity .12s}
+  tbody tr:hover .more{opacity:1}
+
+  /* ---------------- Details drawer ---------------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,28,45,.45);opacity:0;visibility:hidden;transition:.2s;z-index:40}
+  .overlay.show{opacity:1;visibility:visible}
+  .drawer{
+    position:fixed;top:0;right:0;height:100%;width:min(460px,94vw);background:var(--paper);
+    box-shadow:-14px 0 40px rgba(20,28,45,.22);z-index:50;transform:translateX(100%);
+    transition:transform .24s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+  }
+  .drawer.open{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:flex-start;gap:12px;padding:20px 20px 16px;border-bottom:1px solid var(--line)}
+  .drawer-title{font-size:17px;font-weight:700;line-height:1.3}
+  .drawer-sub{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .drawer-sub .d-venue{font-size:12.5px;color:var(--muted)}
+  .drawer-close{margin-left:auto;flex:none;border:1px solid var(--line);background:var(--bg);border-radius:8px;
+    width:34px;height:34px;font-size:15px;cursor:pointer;color:var(--muted)}
+  .drawer-close:hover{color:var(--ink);border-color:var(--accent)}
+  .drawer-body{padding:8px 20px 28px;overflow-y:auto}
+  .d-sec{margin:18px 0 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700}
+  .d-row{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+  .d-k{color:var(--muted)}
+  .d-v{font-weight:600;word-break:break-word}
+  .brk{word-break:break-all;font-weight:500;font-size:12.5px}
+  .d-link{margin-left:6px;font-size:12px;font-weight:600;white-space:nowrap}
+  .d-copy{border:1px solid var(--line);background:var(--bg);border-radius:6px;cursor:pointer;font-size:12px;
+    padding:0 6px;margin-left:6px;color:var(--muted);line-height:1.7}
+  .d-copy:hover{border-color:var(--accent);color:var(--accent)}
+  .d-note{margin-top:16px;background:#fff9e9;border:1px solid #f0e2b8;border-radius:10px;padding:12px 14px;font-size:13px;color:#5c5230}
+  .d-verify{display:block;margin-top:18px;text-align:center;background:var(--accent);color:#fff;text-decoration:none;
+    font-weight:700;padding:13px 16px;border-radius:10px;font-size:14px}
+  .d-verify:hover{filter:brightness(.95)}
+  @media(max-width:560px){.d-row{grid-template-columns:1fr;gap:2px}}
+
   footer{padding:26px 0 60px;color:var(--muted);font-size:12.5px;text-align:center}
 
   /* totals row */
@@ -113,7 +152,7 @@
   /* PRINT */
   @media print{
     body{background:#fff;font-size:11px}
-    .topbar,.controls,.btn,.nav{display:none !important}
+    .topbar,.controls,.btn,.nav,.more,.overlay,.drawer{display:none !important}
     .note{break-inside:avoid}
     .tablewrap{border:none;border-radius:0}
     thead th{position:static;background:#eee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -201,6 +240,19 @@
   </div>
 </div>
 
+<!-- Details drawer -->
+<div id="overlay" class="overlay"></div>
+<aside id="drawer" class="drawer" aria-hidden="true" aria-label="Transaction details">
+  <div class="drawer-head">
+    <div class="drawer-head-txt">
+      <div id="drawerTitle" class="drawer-title">Transaction</div>
+      <div id="drawerSub" class="drawer-sub"></div>
+    </div>
+    <button id="drawerClose" class="drawer-close" aria-label="Close details">✕</button>
+  </div>
+  <div id="drawerBody" class="drawer-body"></div>
+</aside>
+
 <footer>
   <div class="wrap">
     Data exported directly from Coinbase and Ledger Live on 2026-06-03. Wallet addresses and transaction IDs shown are public and cannot be used to access or move any funds.
@@ -275,24 +327,22 @@ function render(){
   const hideDust = els.dust.checked;
 
   let shown = 0, sumUsd = 0;
-  const html = DATA.filter(r=>{
-    if(hideDust && isDust(r)) return false;
-    if(ft && r.type!==ft) return false;
-    if(fa && r.asset!==fa) return false;
-    if(fv && r.venue!==fv) return false;
+  const html = DATA.map((r,i)=>{
+    if(hideDust && isDust(r)) return "";
+    if(ft && r.type!==ft) return "";
+    if(fa && r.asset!==fa) return "";
+    if(fv && r.venue!==fv) return "";
     if(q){
-      const hay = (r.date+" "+r.type+" "+r.asset+" "+(r.note||"")+" "+r.qty+" "+r.usd).toLowerCase();
-      if(!hay.includes(q)) return false;
+      const hay = (r.date+" "+r.type+" "+r.asset+" "+(r.note||"")+" "+(r.id||"")+" "+r.qty+" "+r.usd).toLowerCase();
+      if(!hay.includes(q)) return "";
     }
-    return true;
-  }).map(r=>{
     shown++; sumUsd += Math.abs(r.usd||0);
     const inOut = (r.qty==null) ? "" : (r.qty>=0 ? "in":"out");
     const inOutLabel = inOut==="in" ? "In ▸ acquired" : "Out ▸ moved/sold";
     const verify = r.link
       ? `<a href="${r.link}" target="_blank" rel="noopener">Verify ↗</a>`
       : `<span class="na"><b>Internal</b>exchange record</span>`;
-    return `<tr>
+    return `<tr data-i="${i}" tabindex="0" role="button" aria-label="View transaction details">
       <td class="mono">${fmtDate(r.date)}</td>
       <td class="desc">${describe(r)}</td>
       <td><span class="asset-chip">${r.asset}</span></td>
@@ -300,7 +350,7 @@ function render(){
       <td class="num mono">${fmtUSD(r.usd==null?null:Math.abs(r.usd))}</td>
       <td>${inOut?`<span class="flow ${inOut}">${inOutLabel}</span>`:""}</td>
       <td class="venue">${r.venue}</td>
-      <td class="verify">${verify}</td>
+      <td class="verify">${verify}<span class="more">Details ›</span></td>
     </tr>`;
   }).join("");
 
@@ -318,6 +368,111 @@ function render(){
   els.dust.addEventListener(ev,render);
 });
 render();
+
+/* ---------------- Details drawer ---------------- */
+const drawer = document.getElementById("drawer");
+const overlay = document.getElementById("overlay");
+const drawerBody = document.getElementById("drawerBody");
+const drawerTitle = document.getElementById("drawerTitle");
+const drawerSub = document.getElementById("drawerSub");
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// one detail line: label + value (+ optional explorer link), value optionally monospace/copyable
+function field(label, value, opts={}){
+  if(value==null || value==="" ) return "";
+  const v = opts.mono ? `<span class="mono brk">${esc(value)}</span>` : esc(value);
+  const link = opts.link ? ` <a class="d-link" href="${opts.link}" target="_blank" rel="noopener">open ↗</a>` : "";
+  const copy = opts.copy ? ` <button class="d-copy" data-copy="${esc(opts.copy)}" title="Copy">⧉</button>` : "";
+  return `<div class="d-row"><div class="d-k">${label}</div><div class="d-v">${v}${link}${copy}</div></div>`;
+}
+
+function fullTime(s){
+  const d = new Date(s.replace(" ","T")+"Z");
+  return isNaN(d) ? s : d.toLocaleString("en-US",{dateStyle:"full",timeStyle:"short"}) + " (your time)";
+}
+
+function buildDrawer(r){
+  const acquired = (r.qty!=null && r.qty>=0);
+  drawerTitle.textContent = describe(r);
+  drawerSub.innerHTML = `<span class="flow ${acquired?'in':'out'}">${acquired?'In ▸ acquired':'Out ▸ moved / sold'}</span>
+     <span class="d-venue">${esc(r.venue)}</span>`;
+
+  let html = "";
+
+  // Money section
+  html += `<div class="d-sec">Amounts</div>`;
+  html += field("Quantity", fmtQty(r.qty) + " " + r.asset);
+  html += field("USD value at the time", r.usd==null?null:fmtUSD(Math.abs(r.usd)));
+  if(r.usd_now!=null) html += field("Estimated value today", fmtUSD(Math.abs(r.usd_now)));
+  if(r.price!=null) html += field("Price per " + r.asset + " (then)", fmtUSD(r.price));
+  if(r.subtotal!=null) html += field("Subtotal before fees", fmtUSD(Math.abs(r.subtotal)));
+  if(r.fee!=null && r.fee!==0) html += field("Fee", (r.venue==="Coinbase"?fmtUSD(r.fee):fmtQty(r.fee)+" "+r.asset));
+
+  // When / where
+  html += `<div class="d-sec">When &amp; where</div>`;
+  html += field("Date &amp; time", fullTime(r.date));
+  html += field("Held at", r.venue);
+  if(r.account) html += field("Wallet account", r.account);
+  if(r.status) html += field("Status", r.status);
+
+  // Verification section
+  html += `<div class="d-sec">Records &amp; verification</div>`;
+  if(r.venue==="Coinbase" && r.id) html += field("Coinbase transaction ID", r.id, {mono:true, copy:r.id});
+  if(r.hash) html += field("Blockchain transaction hash", r.hash, {mono:true, copy:r.hash, link:r.link});
+  if(r.recipient) html += field(r.type==="Send"?"Sent to address":"Recipient address", r.recipient, {mono:true, copy:r.recipient, link:r.recipientLink});
+  if(r.sender) html += field("From address", r.sender, {mono:true, copy:r.sender, link:r.senderLink});
+  if(r.xpub) html += field("Wallet public key", r.xpub, {mono:true, copy:r.xpub, link:r.xpubLink});
+  if(r.note) html += field("Original note", r.note);
+  if(!r.link){
+    html += `<div class="d-note">This is an <b>internal Coinbase transaction</b> (a buy, sell, conversion, or reward). It lives in Coinbase's own records — like a brokerage statement entry — and has no separate public blockchain record. The Coinbase transaction ID above identifies it on an official Coinbase statement.</div>`;
+  }
+
+  // Big verify button
+  if(r.link){
+    html += `<a class="d-verify" href="${r.link}" target="_blank" rel="noopener">🔗 Verify this transaction on the public blockchain ↗</a>`;
+  }
+
+  drawerBody.innerHTML = html;
+}
+
+function openDrawer(i){
+  const r = DATA[i];
+  if(!r) return;
+  buildDrawer(r);
+  drawer.classList.add("open");
+  overlay.classList.add("show");
+  drawer.setAttribute("aria-hidden","false");
+  document.body.style.overflow="hidden";
+}
+function closeDrawer(){
+  drawer.classList.remove("open");
+  overlay.classList.remove("show");
+  drawer.setAttribute("aria-hidden","true");
+  document.body.style.overflow="";
+}
+
+els.rows.addEventListener("click", e=>{
+  if(e.target.closest("a")) return;            // let inline Verify links work
+  const tr = e.target.closest("tr[data-i]");
+  if(tr) openDrawer(+tr.dataset.i);
+});
+els.rows.addEventListener("keydown", e=>{
+  if((e.key==="Enter"||e.key===" ") && e.target.matches("tr[data-i]")){
+    e.preventDefault(); openDrawer(+e.target.dataset.i);
+  }
+});
+overlay.addEventListener("click", closeDrawer);
+document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeDrawer(); });
+
+// copy buttons (event delegation)
+drawerBody.addEventListener("click", e=>{
+  const b = e.target.closest(".d-copy");
+  if(!b) return;
+  navigator.clipboard?.writeText(b.dataset.copy);
+  const old=b.textContent; b.textContent="✓"; setTimeout(()=>b.textContent=old,1200);
+});
 </script>
 </body>
 </html>
