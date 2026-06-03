@@ -54,14 +54,22 @@
   .card .v.sm{font-size:15.5px}
   @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
 
-  /* underwriter note */
+  /* underwriter note (collapsible) */
   .note{
     background:#fff9e9;border:1px solid #f0e2b8;border-radius:12px;
-    padding:16px 18px;margin:20px 0;font-size:14px;color:#5c5230;
+    padding:14px 18px;margin:18px 0;font-size:14px;color:#5c5230;
   }
-  .note h3{margin:0 0 6px;font-size:15px;color:#6b5d1f}
-  .note ul{margin:8px 0 0;padding-left:18px}
-  .note li{margin:3px 0}
+  .note > summary{
+    list-style:none;cursor:pointer;font-weight:700;font-size:15px;color:#6b5d1f;
+    display:flex;align-items:center;gap:8px;
+  }
+  .note > summary::-webkit-details-marker{display:none}
+  .note > summary::before{content:"▸";font-size:12px;transition:transform .15s}
+  .note[open] > summary::before{transform:rotate(90deg)}
+  .note > summary .hint{font-weight:400;font-size:13px;color:#9a8a55}
+  .note[open] > summary{margin-bottom:8px}
+  .note ul{margin:0;padding-left:20px}
+  .note li{margin:4px 0}
 
   /* controls */
   .controls{
@@ -174,6 +182,8 @@
     .topbar,.controls,.btn,.nav,.more,.overlay,.drawer,.cbw-copy{display:none !important}
     .cbw{break-inside:avoid;border:1px solid #ccc}
     .note{break-inside:avoid}
+    .note > ul{display:block !important}  /* force the collapsible note open when printing */
+    .note > summary .hint{display:none}
     .tablewrap{border:none;border-radius:0}
     thead th{position:static;background:#eee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .flow,.asset-chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -212,15 +222,14 @@
 </div>
 
 <div class="wrap">
-  <div class="note" id="how-to-read">
-    <h3>How to read this ledger (for reviewers new to cryptocurrency)</h3>
-    <p>Cryptocurrency works much like a brokerage account combined with cash transfers. There are two kinds of entries here:</p>
+  <details class="note" id="how-to-read">
+    <summary>How to read this ledger <span class="hint">(new to crypto? click to expand)</span></summary>
     <ul>
-      <li><b>Exchange transactions</b> (Buy, Sell, Convert, Reward) happen <i>inside</i> Coinbase — a regulated U.S. company that issues account statements and tax forms, similar to a stock brokerage. These are recorded in Coinbase's books, so they are marked <i>“Internal exchange record.”</i></li>
-      <li><b>Wallet transfers</b> (Send / Receive) move coins between Coinbase and the account holder's personal <b>Ledger</b> device (an offline “vault”). These are written to the public <b>blockchain</b> — a permanent, tamper-proof public record — so each one includes a <b>“Verify ↗”</b> link anyone can open to confirm the amount, date, and parties independently.</li>
+      <li><b>Exchange transactions</b> (Buy, Sell, Convert, Reward) happen inside Coinbase — like a brokerage — and are marked <i>“Internal exchange record.”</i></li>
+      <li><b>Wallet transfers</b> (Send / Receive) move coins to/from the personal <b>Ledger</b> device and are recorded on the public blockchain, so each has a <b>“Verify ↗”</b> link to confirm it independently.</li>
+      <li><b>In / Out</b> = asset acquired (In) or moved out / sold (Out). Dollar values are the market value at the time of each transaction.</li>
     </ul>
-    <p style="margin:8px 0 0"><b>“In / Out”</b> shows whether the account holder <i>acquired</i> (In) or <i>disposed of / moved out</i> (Out) that asset. Dollar values are the market value at the moment of the transaction. Use the <b>Print / Save as PDF</b> button for a clean copy; printed links include their full web address for reference.</p>
-  </div>
+  </details>
 </div>
 
 <div class="wrap wide">
