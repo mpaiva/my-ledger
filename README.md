@@ -15,7 +15,11 @@ on the blockchain so anyone can verify it.
   **"View on blockchain"** link.
 - **Plain-English glossary** of crypto terms.
 
-It's a single, self-contained `index.html` — no build step, no dependencies.
+- **Full ledger** (`ledger.html`) — a complete, printable accounting-style record of
+  every transaction, written for a loan underwriter who isn't familiar with crypto.
+
+The pages are static HTML — no build step, no dependencies. The transaction data is
+generated from the original account exports in [`data/`](data/) via `build_ledger.py`.
 
 ## The money trail
 
