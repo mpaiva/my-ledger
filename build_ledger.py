@@ -3,10 +3,11 @@
 embedded as a JS file for the static GitHub Pages site."""
 import csv, json, re, os
 
-UP = "/root/.claude/uploads/4a2304f7-4c80-481c-a148-df39f4b77076"
-COINBASE = os.path.join(UP, "9c73985d-coinbasealltransactions2026.06.03.csv")
-LEDGER   = os.path.join(UP, "f7691392-ledgerwalletoperations2026.06.03.csv")
-OUT      = "/home/user/my-ledger/ledger-data.js"
+HERE     = os.path.dirname(os.path.abspath(__file__))
+DATA     = os.path.join(HERE, "data")
+COINBASE = os.path.join(DATA, "coinbase-transactions-2026-06-03.csv")
+LEDGER   = os.path.join(DATA, "ledger-wallet-operations-2026-06-03.csv")
+OUT      = os.path.join(HERE, "ledger-data.js")
 
 def money(s):
     """'$1,234.56' -> 1234.56 ; '' -> None"""
