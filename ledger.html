@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crypto Transaction Ledger — Complete Record (2018–2026)</title>
+<meta name="description" content="A complete, plain-language accounting ledger of every cryptocurrency transaction, prepared for loan underwriting. Includes USD values and independent blockchain verification links." />
+<style>
+  :root{
+    --ink:#1a2233;
+    --muted:#5a6680;
+    --line:#e2e6ef;
+    --line-2:#eef1f6;
+    --bg:#f5f7fb;
+    --paper:#ffffff;
+    --accent:#1f5fd6;
+    --in:#0a7d4d;
+    --in-bg:#e7f6ee;
+    --out:#a23b3b;
+    --out-bg:#fbecec;
+    --chip:#eef2fa;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px;line-height:1.5;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  a{color:var(--accent)}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  /* top bar */
+  .topbar{background:var(--paper);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 22px}
+  .brand{font-weight:700}
+  .nav a{margin-left:18px;text-decoration:none;font-size:14px;color:var(--muted)}
+  .nav a:hover{color:var(--accent)}
+
+  /* document header */
+  .doc-head{background:var(--paper);border-bottom:1px solid var(--line);padding:34px 0 30px}
+  .doc-head h1{margin:0 0 6px;font-size:28px}
+  .doc-head .meta{color:var(--muted);font-size:14.5px}
+  .doc-head .holder{margin-top:14px;font-size:14.5px}
+  .doc-head .holder b{color:var(--ink)}
+
+  /* summary cards */
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:22px 0 4px}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 14px}
+  .card .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .card .v{font-size:20px;font-weight:700;margin-top:5px}
+  .card .v.sm{font-size:15.5px}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+
+  /* underwriter note */
+  .note{
+    background:#fff9e9;border:1px solid #f0e2b8;border-radius:12px;
+    padding:16px 18px;margin:20px 0;font-size:14px;color:#5c5230;
+  }
+  .note h3{margin:0 0 6px;font-size:15px;color:#6b5d1f}
+  .note ul{margin:8px 0 0;padding-left:18px}
+  .note li{margin:3px 0}
+
+  /* controls */
+  .controls{
+    position:sticky;top:0;z-index:5;background:var(--bg);
+    padding:14px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);
+  }
+  .controls input[type=search],.controls select{
+    font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);
+  }
+  .controls input[type=search]{min-width:230px;flex:1 1 230px}
+  .toggle{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--muted);user-select:none;cursor:pointer}
+  .btn{
+    text-decoration:none;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink);
+    padding:9px 14px;border-radius:9px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:7px;
+  }
+  .btn:hover{border-color:var(--accent)}
+  .btn.print{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .count{font-size:13px;color:var(--muted);margin-left:auto}
+
+  /* table */
+  .tablewrap{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:16px 0 40px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  thead th{
+    position:sticky;top:64px;background:#f0f3f9;text-align:left;padding:11px 12px;font-size:11.5px;
+    text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  tbody tr:hover{background:#f8faff}
+  .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .desc{max-width:340px}
+  .asset-chip{display:inline-block;background:var(--chip);border-radius:6px;padding:2px 8px;font-weight:700;font-size:12px}
+  .flow{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .flow.in{color:var(--in);background:var(--in-bg)}
+  .flow.out{color:var(--out);background:var(--out-bg)}
+  .venue{font-size:12.5px;color:var(--muted);white-space:nowrap}
+  .verify a{font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap}
+  .verify .na{font-size:12px;color:var(--muted)}
+  .verify .na b{display:block;font-weight:600;color:#7a839a}
+
+  footer{padding:26px 0 60px;color:var(--muted);font-size:12.5px;text-align:center}
+
+  /* totals row */
+  tfoot td{padding:12px;background:#f0f3f9;font-weight:700;border-top:2px solid var(--line)}
+
+  /* PRINT */
+  @media print{
+    body{background:#fff;font-size:11px}
+    .topbar,.controls,.btn,.nav{display:none !important}
+    .note{break-inside:avoid}
+    .tablewrap{border:none;border-radius:0}
+    thead th{position:static;background:#eee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .flow,.asset-chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    a{color:#000;text-decoration:underline}
+    .verify a::after{content:" (" attr(href) ")";font-size:8px;color:#444;word-break:break-all}
+    tbody tr{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <span class="brand">📒 Crypto Transaction Ledger</span>
+    <nav class="nav">
+      <a href="index.html">← Visual journey</a>
+      <a href="#how-to-read">How to read this</a>
+    </nav>
+  </div>
+</div>
+
+<div class="doc-head">
+  <div class="wrap">
+    <h1>Complete Cryptocurrency Transaction Ledger</h1>
+    <div class="meta">Prepared for loan underwriting · Covers <b id="range">…</b> · Sources: Coinbase (regulated U.S. exchange) &amp; Ledger hardware wallet</div>
+    <div class="holder">Account holder: <b>Marcelo Teixeira Paiva</b> &nbsp;·&nbsp; Every row below is an individual, dated transaction with its U.S.&nbsp;dollar value at the time it occurred.</div>
+
+    <div class="cards">
+      <div class="card"><div class="k">Transactions</div><div class="v" id="c-count">…</div></div>
+      <div class="card"><div class="k">Date range</div><div class="v sm" id="c-range">…</div></div>
+      <div class="card"><div class="k">Total invested (purchases)</div><div class="v" id="c-invested">…</div></div>
+      <div class="card"><div class="k">Total cashed out to bank</div><div class="v" id="c-out">…</div></div>
+      <div class="card"><div class="k">Independently verifiable</div><div class="v" id="c-verify">…</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="note" id="how-to-read">
+    <h3>How to read this ledger (for reviewers new to cryptocurrency)</h3>
+    <p>Cryptocurrency works much like a brokerage account combined with cash transfers. There are two kinds of entries here:</p>
+    <ul>
+      <li><b>Exchange transactions</b> (Buy, Sell, Convert, Reward) happen <i>inside</i> Coinbase — a regulated U.S. company that issues account statements and tax forms, similar to a stock brokerage. These are recorded in Coinbase's books, so they are marked <i>“Internal exchange record.”</i></li>
+      <li><b>Wallet transfers</b> (Send / Receive) move coins between Coinbase and the account holder's personal <b>Ledger</b> device (an offline “vault”). These are written to the public <b>blockchain</b> — a permanent, tamper-proof public record — so each one includes a <b>“Verify ↗”</b> link anyone can open to confirm the amount, date, and parties independently.</li>
+    </ul>
+    <p style="margin:8px 0 0"><b>“In / Out”</b> shows whether the account holder <i>acquired</i> (In) or <i>disposed of / moved out</i> (Out) that asset. Dollar values are the market value at the moment of the transaction. Use the <b>Print / Save as PDF</b> button for a clean copy; printed links include their full web address for reference.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search description, asset, amount…" />
+    <select id="f-type"><option value="">All types</option></select>
+    <select id="f-asset"><option value="">All coins</option></select>
+    <select id="f-venue"><option value="">Coinbase &amp; Ledger</option><option>Coinbase</option><option>Ledger wallet</option></select>
+    <label class="toggle"><input type="checkbox" id="hideDust" checked /> Hide $0 / dust</label>
+    <button class="btn print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date (UTC)</th>
+          <th>Description</th>
+          <th>Coin</th>
+          <th class="num">Quantity</th>
+          <th class="num">USD value<br>at the time</th>
+          <th>In / Out</th>
+          <th>Held at</th>
+          <th>Verify</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4">Showing <span id="f-count">0</span> transactions</td>
+          <td class="num" id="f-usd">—</td>
+          <td colspan="3"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    Data exported directly from Coinbase and Ledger Live on 2026-06-03. Wallet addresses and transaction IDs shown are public and cannot be used to access or move any funds.
+    Dollar figures reflect each transaction's value on its date. · <a href="index.html">View the visual journey →</a>
+  </div>
+</footer>
+
+<script src="ledger-data.js"></script>
+<script>
+const DATA = window.LEDGER_DATA || [];
+
+const fmtUSD = n => n==null ? "—" : (n<0?"-":"") + "$" + Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtQty = n => n==null ? "—" : Math.abs(n).toLocaleString("en-US",{maximumFractionDigits:8});
+const fmtDate = s => {
+  const d = new Date(s.replace(" ","T")+"Z");
+  if(isNaN(d)) return s;
+  return d.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"2-digit"});
+};
+const isDust = r => (r.usd==null || Math.abs(r.usd) < 0.01);
+
+function describe(r){
+  const q = fmtQty(r.qty);
+  if(r.note && r.venue==="Coinbase" && r.note.length>3) return r.note;
+  if(r.venue==="Ledger wallet"){
+    return (r.type==="Receive"?"Received ":"Sent ")+q+" "+r.asset+
+           (r.type==="Receive"?" into":" from")+" Ledger hardware wallet";
+  }
+  const verb = {Buy:"Bought",Sell:"Sold",Send:"Sent",Receive:"Received",Convert:"Converted",
+    "Reward Income":"Earned reward of","Withdrawal":"Withdrew","Pro Withdrawal":"Moved (Pro)",
+    "Pro Deposit":"Moved (Pro)","Admin Debit":"Adjustment"}[r.type] || r.type;
+  return verb+" "+q+" "+r.asset;
+}
+
+// populate filter dropdowns
+const types = [...new Set(DATA.map(r=>r.type))].sort();
+const assets = [...new Set(DATA.map(r=>r.asset))].sort();
+const selType = document.getElementById("f-type");
+const selAsset = document.getElementById("f-asset");
+types.forEach(t=>selType.insertAdjacentHTML("beforeend",`<option>${t}</option>`));
+assets.forEach(a=>selAsset.insertAdjacentHTML("beforeend",`<option>${a}</option>`));
+
+// headline stats (full dataset)
+function headline(){
+  const invested = DATA.filter(r=>r.type==="Buy").reduce((s,r)=>s+(r.usd||0),0);
+  const cashOut = DATA.filter(r=>(r.type==="Withdrawal" && (r.asset==="USD"||r.asset==="USDC")))
+                      .reduce((s,r)=>s+Math.abs(r.usd||0),0);
+  const verifiable = DATA.filter(r=>r.link).length;
+  const dates = DATA.map(r=>r.date).sort();
+  const range = fmtDate(dates[0])+" – "+fmtDate(dates[dates.length-1]);
+  document.getElementById("c-count").textContent = DATA.length.toLocaleString();
+  document.getElementById("c-range").textContent = range;
+  document.getElementById("range").textContent = range;
+  document.getElementById("c-invested").textContent = fmtUSD(invested);
+  document.getElementById("c-out").textContent = fmtUSD(cashOut);
+  document.getElementById("c-verify").textContent = verifiable + " on-chain";
+}
+headline();
+
+const els = {
+  search:document.getElementById("search"),
+  type:selType, asset:selAsset, venue:document.getElementById("f-venue"),
+  dust:document.getElementById("hideDust"),
+  rows:document.getElementById("rows"),
+  count:document.getElementById("count"),
+  fcount:document.getElementById("f-count"),
+  fusd:document.getElementById("f-usd"),
+};
+
+function render(){
+  const q = els.search.value.trim().toLowerCase();
+  const ft = els.type.value, fa = els.asset.value, fv = els.venue.value;
+  const hideDust = els.dust.checked;
+
+  let shown = 0, sumUsd = 0;
+  const html = DATA.filter(r=>{
+    if(hideDust && isDust(r)) return false;
+    if(ft && r.type!==ft) return false;
+    if(fa && r.asset!==fa) return false;
+    if(fv && r.venue!==fv) return false;
+    if(q){
+      const hay = (r.date+" "+r.type+" "+r.asset+" "+(r.note||"")+" "+r.qty+" "+r.usd).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).map(r=>{
+    shown++; sumUsd += Math.abs(r.usd||0);
+    const inOut = (r.qty==null) ? "" : (r.qty>=0 ? "in":"out");
+    const inOutLabel = inOut==="in" ? "In ▸ acquired" : "Out ▸ moved/sold";
+    const verify = r.link
+      ? `<a href="${r.link}" target="_blank" rel="noopener">Verify ↗</a>`
+      : `<span class="na"><b>Internal</b>exchange record</span>`;
+    return `<tr>
+      <td class="mono">${fmtDate(r.date)}</td>
+      <td class="desc">${describe(r)}</td>
+      <td><span class="asset-chip">${r.asset}</span></td>
+      <td class="num mono">${fmtQty(r.qty)}</td>
+      <td class="num mono">${fmtUSD(r.usd==null?null:Math.abs(r.usd))}</td>
+      <td>${inOut?`<span class="flow ${inOut}">${inOutLabel}</span>`:""}</td>
+      <td class="venue">${r.venue}</td>
+      <td class="verify">${verify}</td>
+    </tr>`;
+  }).join("");
+
+  els.rows.innerHTML = html || `<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">No transactions match these filters.</td></tr>`;
+  els.count.textContent = shown.toLocaleString()+" of "+DATA.length.toLocaleString()+" shown";
+  els.fcount.textContent = shown.toLocaleString();
+  els.fusd.textContent = "Σ " + fmtUSD(sumUsd);
+}
+
+["input","change"].forEach(ev=>{
+  els.search.addEventListener(ev,render);
+  els.type.addEventListener(ev,render);
+  els.asset.addEventListener(ev,render);
+  els.venue.addEventListener(ev,render);
+  els.dust.addEventListener(ev,render);
+});
+render();
+</script>
+</body>
+</html>
