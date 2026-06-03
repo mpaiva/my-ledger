@@ -277,8 +277,10 @@ function describe(r){
   const q = fmtQty(r.qty);
   if(r.note && r.venue==="Coinbase" && r.note.length>3) return r.note;
   if(r.venue==="Ledger wallet"){
-    return (r.type==="Receive"?"Received ":"Sent ")+q+" "+r.asset+
+    let s = (r.type==="Receive"?"Received ":"Sent ")+q+" "+r.asset+
            (r.type==="Receive"?" into":" from")+" Ledger hardware wallet";
+    if(r.source) s += " (from own Coinbase Wallet)";
+    return s;
   }
   const verb = {Buy:"Bought",Sell:"Sold",Send:"Sent",Receive:"Received",Convert:"Converted",
     "Reward Income":"Earned reward of","Withdrawal":"Withdrew","Pro Withdrawal":"Moved (Pro)",
@@ -423,6 +425,7 @@ function buildDrawer(r){
   if(r.recipient) html += field(r.type==="Send"?"Sent to address":"Recipient address", r.recipient, {mono:true, copy:r.recipient, link:r.recipientLink});
   if(r.sender) html += field("From address", r.sender, {mono:true, copy:r.sender, link:r.senderLink});
   if(r.xpub) html += field("Wallet public key", r.xpub, {mono:true, copy:r.xpub, link:r.xpubLink});
+  if(r.source) html += field("Source of funds", r.source);
   if(r.note) html += field("Original note", r.note);
   if(!r.link){
     html += `<div class="d-note">This is an <b>internal Coinbase transaction</b> (a buy, sell, conversion, or reward). It lives in Coinbase's own records — like a brokerage statement entry — and has no separate public blockchain record. The Coinbase transaction ID above identifies it on an official Coinbase statement.</div>`;

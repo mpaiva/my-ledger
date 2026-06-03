@@ -112,6 +112,17 @@ with open(COINBASE, newline="") as f:
             "recipientLink": recip_link,
         })
 
+# Known counterparties confirmed from other records (keyed by tx hash).
+# These two ETH deposits were confirmed (matching amount, recipient 0x18F5…772D,
+# and timestamp) to originate from the account holder's own Coinbase Wallet
+# (self-custody, wallet.coinbase.com) — a separate wallet from the Coinbase exchange.
+SOURCE_NOTES = {
+    "0x97c583119f62bc837177665997ba09c167766b1ba868efb25ed16f26e009a322":
+        "From the account holder's own Coinbase Wallet (self-custody) — confirmed by matching amount, recipient address, and timestamp.",
+    "0xc0f510ad28dcf84660364c2ad6d2ec0ed246012b946ef842bb65a8ce818f13f8":
+        "From the account holder's own Coinbase Wallet (self-custody) — confirmed by matching amount, recipient address, and timestamp.",
+}
+
 # ---------------- Ledger ----------------
 seen = set()
 with open(LEDGER, newline="") as f:
@@ -150,6 +161,7 @@ with open(LEDGER, newline="") as f:
             "account": (r.get("Account Name") or "").strip(),
             "xpub": xpub,
             "xpubLink": addr_explorer(asset, xpub),
+            "source": SOURCE_NOTES.get(h),
         })
 
 # sort newest first

@@ -329,20 +329,20 @@ const TX = [
   {
     coin:"eth", sym:"Ξ", name:"Ethereum", date:"2022-11-12",
     dir:"in", amount:"0.03977880 ETH",
-    from:"Another account", to:"My Ledger wallet",
-    desc:"A small Ethereum transfer into my Ledger wallet.",
+    from:"My Coinbase Wallet", to:"My Ledger wallet",
+    desc:"A small Ethereum transfer from my Coinbase Wallet (a separate self-custody wallet I own) into my Ledger wallet.",
     then:"$50.21", now:"$73.71", up:true,
-    fromAddr:"Another account", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
+    fromAddr:"My Coinbase Wallet", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
     hash:"0xc0f510ad28dcf84660364c2ad6d2ec0ed246012b946ef842bb65a8ce818f13f8",
     explorer:"https://etherscan.io/tx/"
   },
   {
     coin:"eth", sym:"Ξ", name:"Ethereum", date:"2022-11-12",
     dir:"in", amount:"7.95068999 ETH",
-    from:"Another account", to:"My Ledger wallet",
-    desc:"The largest Ethereum deposit into my Ledger wallet — nearly 8 ETH moved into safe storage.",
+    from:"My Coinbase Wallet", to:"My Ledger wallet",
+    desc:"The largest Ethereum deposit into my Ledger wallet — nearly 8 ETH, moved from my own Coinbase Wallet (self-custody) into safe storage on the Ledger.",
     then:"$10,037.10", now:"$14,733.02", up:true,
-    fromAddr:"Another account", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
+    fromAddr:"My Coinbase Wallet", toAddr:"0x18F5Be87B5feAc00A6ABf9220131Fc7AaAb7772D",
     hash:"0x97c583119f62bc837177665997ba09c167766b1ba868efb25ed16f26e009a322",
     explorer:"https://etherscan.io/tx/"
   },
@@ -397,12 +397,12 @@ const addrExplorer = {
 };
 
 function shortAddr(a){
-  if(!a || a==="—" || a==="Coinbase" || a==="My Ledger wallet" || a==="Another account") return a;
+  if(!a || a==="—" || a==="Coinbase" || a==="My Ledger wallet" || a==="My Coinbase Wallet") return a;
   return a.slice(0,8)+"…"+a.slice(-6);
 }
 function addrLink(a, coin){
   const s = shortAddr(a);
-  if(a && a.length>15 && a!=="My Ledger wallet" && a!=="Another account"){
+  if(a && a.length>15 && a!=="My Ledger wallet" && a!=="My Coinbase Wallet"){
     return `<a class="mono" href="${addrExplorer[coin]}${a}" target="_blank" rel="noopener">${s}</a>`;
   }
   return `<span>${s}</span>`;
