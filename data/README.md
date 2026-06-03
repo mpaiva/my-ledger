@@ -7,7 +7,7 @@ They are included for reference and verification.
 |------|--------|------|-------|
 | `coinbase-transactions-2026-06-03.csv` | Coinbase account export | 1,496 transactions | Buys, sells, conversions, rewards, and wallet transfers. Includes the original `User` and column headers. |
 | `ledger-wallet-operations-2026-06-03.csv` | Ledger Live (hardware wallet) export | 19 operations (22 rows; some on-chain transfers are listed once per account) | On-chain Send/Receive operations for the BTC, ETH, and XRP wallets, each with its blockchain transaction hash. |
-| `coinbase-wallet-tx-hashes.txt` | Coinbase Wallet (self-custody) | 9 transaction hashes | The Coinbase Wallet app offers no CSV export, so these Ethereum tx hashes were provided directly. They document the source of the ~8 ETH later moved into the Ledger. Verify each at `https://etherscan.io/tx/<hash>`. |
+| `coinbase-wallet-tx-hashes.txt` | Coinbase Wallet (self-custody) | 8 transaction hashes | The Coinbase Wallet app offers no CSV export, so these Ethereum tx hashes were provided directly. They document the source of the ~8 ETH later moved into the Ledger. Verify each at `https://etherscan.io/tx/<hash>`. |
 
 Both files were exported on **2026-06-03**.
 
