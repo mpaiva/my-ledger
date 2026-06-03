@@ -230,6 +230,7 @@
     <select id="f-asset"><option value="">All coins</option></select>
     <select id="f-venue"><option value="">Coinbase &amp; Ledger</option><option>Coinbase</option><option>Ledger wallet</option></select>
     <label class="toggle"><input type="checkbox" id="hideDust" checked /> Hide $0 / dust</label>
+    <button class="btn" id="exportBtn" title="Download the rows currently shown as a CSV file (opens in Excel, Numbers, Google Sheets)">⬇️ Export to CSV / Excel</button>
     <button class="btn print" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <span class="count" id="count"></span>
   </div>
@@ -391,21 +392,25 @@ const els = {
   fusd:document.getElementById("f-usd"),
 };
 
-function render(){
+// shared filter predicate (used by the table and the CSV export)
+function matches(r){
   const q = els.search.value.trim().toLowerCase();
   const ft = els.type.value, fa = els.asset.value, fv = els.venue.value;
-  const hideDust = els.dust.checked;
+  if(els.dust.checked && isDust(r)) return false;
+  if(ft && r.type!==ft) return false;
+  if(fa && r.asset!==fa) return false;
+  if(fv && r.venue!==fv) return false;
+  if(q){
+    const hay = (r.date+" "+r.type+" "+r.asset+" "+(r.note||"")+" "+(r.id||"")+" "+r.qty+" "+r.usd).toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
 
+function render(){
   let shown = 0, sumUsd = 0;
   const html = DATA.map((r,i)=>{
-    if(hideDust && isDust(r)) return "";
-    if(ft && r.type!==ft) return "";
-    if(fa && r.asset!==fa) return "";
-    if(fv && r.venue!==fv) return "";
-    if(q){
-      const hay = (r.date+" "+r.type+" "+r.asset+" "+(r.note||"")+" "+(r.id||"")+" "+r.qty+" "+r.usd).toLowerCase();
-      if(!hay.includes(q)) return "";
-    }
+    if(!matches(r)) return "";
     shown++; sumUsd += Math.abs(r.usd||0);
     const inOut = (r.qty==null) ? "" : (r.qty>=0 ? "in":"out");
     const inOutLabel = inOut==="in" ? "In ▸ acquired" : "Out ▸ moved/sold";
@@ -438,6 +443,56 @@ function render(){
   els.dust.addEventListener(ev,render);
 });
 render();
+
+/* ---------------- CSV / Excel export ---------------- */
+// Columns mirror the full detail available per transaction. Numbers are exported
+// as plain values (no $ or commas) so Excel/Sheets treat them as numbers.
+const EXPORT_COLS = [
+  ["Date (UTC)",            r => r.date],
+  ["Description",           r => describe(r)],
+  ["Venue",                 r => r.venue],
+  ["Transaction type",      r => r.type],
+  ["Coin",                  r => r.asset],
+  ["Quantity",              r => r.qty==null ? "" : Math.abs(r.qty)],
+  ["Direction",             r => r.qty==null ? "" : (r.qty>=0 ? "In (acquired)" : "Out (moved/sold)")],
+  ["USD value at the time", r => r.usd==null ? "" : Math.abs(r.usd)],
+  ["Estimated value today (USD)", r => r.usd_now==null ? "" : Math.abs(r.usd_now)],
+  ["Unit price (USD)",      r => r.price==null ? "" : r.price],
+  ["Subtotal before fees (USD)", r => r.subtotal==null ? "" : Math.abs(r.subtotal)],
+  ["Fee",                   r => r.fee==null ? "" : Math.abs(r.fee)],
+  ["Fee currency",          r => r.fee==null ? "" : (r.venue==="Coinbase" ? "USD" : r.asset)],
+  ["Status",                r => r.status || ""],
+  ["Coinbase transaction ID", r => r.venue==="Coinbase" ? (r.id||"") : ""],
+  ["Blockchain tx hash",    r => r.hash || ""],
+  ["From address",          r => r.sender || ""],
+  ["To address",            r => r.recipient || ""],
+  ["Wallet public key",     r => r.xpub || ""],
+  ["Source of funds",       r => r.source || ""],
+  ["Original note",         r => r.note || ""],
+  ["Verify link",           r => r.link || (r.venue==="Coinbase" ? "Internal exchange record (no public blockchain record)" : "")],
+];
+
+function csvCell(v){
+  if(v==null) v="";
+  v = String(v);
+  return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+}
+
+function exportCSV(){
+  const rows = DATA.filter(matches);
+  const lines = [EXPORT_COLS.map(c=>csvCell(c[0])).join(",")];
+  rows.forEach(r=> lines.push(EXPORT_COLS.map(c=>csvCell(c[1](r))).join(",")));
+  // UTF-8 BOM (﻿) so Excel reads accents correctly; \r\n line endings for Excel
+  const csv = "﻿" + lines.join("\r\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "crypto-ledger-" + new Date().toISOString().slice(0,10) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+document.getElementById("exportBtn").addEventListener("click", exportCSV);
 
 /* ---------------- Details drawer ---------------- */
 const drawer = document.getElementById("drawer");
